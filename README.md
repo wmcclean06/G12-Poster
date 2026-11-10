@@ -4,6 +4,9 @@
 
 - Remember to have git-lfs installed on your machine as we are dealing with large data files
 - Don't delete the Original data ever and if you do change it give it a reasonable name.
+- Install a parquet loader or plugin so you can view the data naturally, 
+  - On IntelliJ, we are using  [Parquet Loader](https://plugins.jetbrains.com/plugin/26684-parquet-loader)
+  - On VSCode, we are using []()
 
 ## 1. Data cleaning and preprocessing|Data Parallelism
 Our main problem is that we don't have any latitudes or longitudes for drop off or pickup
