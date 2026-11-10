@@ -1,7 +1,12 @@
 # G12-Poster
 
+## 0. House Cleaning
+
+- Remember to have git-lfs installed on your machine as we are dealing with large data files
+- Don't delete the Original data ever and if you do change it give it a reasonable name.
+
 ## 1. Data cleaning and preprocessing|Data Parallelism
-Our main problem is that we don't have any latitudes or longitudes for dropoff or pickup
+Our main problem is that we don't have any latitudes or longitudes for drop off or pickup
 
 - Include a tag on anything that is data parallelism, as these cannot be used in the sequential algorithm
 - Data cleaning: removing 0, anything over 100 miles, 
@@ -33,7 +38,7 @@ Our main problem is that we don't have any latitudes or longitudes for dropoff o
 ## 3. Poster
 
 - Talk about points 1 and 3 from the rubric  
-  - Maybe use the new york boroughs example as a diagram
+  - Maybe use the New York boroughs example as a diagram
   - Include the trip time prediction from the time of day
 - Talk about sequential vs parallel
   - Task parallelism
@@ -43,7 +48,7 @@ Our main problem is that we don't have any latitudes or longitudes for dropoff o
 
 ## Questions for lab
 
-- Does manhattan to queens average time count as a feature for feature extraction?
+- Does Manhattan to Queens average time count as a feature for feature extraction?
 - 
 
 
