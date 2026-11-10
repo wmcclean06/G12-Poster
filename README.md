@@ -6,7 +6,9 @@
 - Don't delete the Original data ever and if you do change it give it a reasonable name.
 - Install a parquet loader or plugin so you can view the data naturally, 
   - On IntelliJ, we are using  [Parquet Loader](https://plugins.jetbrains.com/plugin/26684-parquet-loader)
+    - You will have to restart your computer after installing
   - On VSCode, we are using []()
+- We will be defining all of the variables in this [Variables](Variables.md)
 
 ## 1. Data cleaning and preprocessing|Data Parallelism
 Our main problem is that we don't have any latitudes or longitudes for drop off or pickup
