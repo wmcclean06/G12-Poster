@@ -7,7 +7,7 @@
 - Install a parquet loader or plugin so you can view the data naturally, 
   - On IntelliJ, we are using  [Parquet Loader](https://plugins.jetbrains.com/plugin/26684-parquet-loader)
     - You will have to restart your computer after installing
-  - On VSCode, we are using []()
+  - On VSCode, we are using [Parquet Loader](https://marketplace.visualstudio.com/items?itemName=AdamViola.parquet-explorer)
 - We will be defining all of the variables in this [Variables](Variables.md)
 
 ## 1. Data cleaning and preprocessing|Data Parallelism
