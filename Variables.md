@@ -4,6 +4,7 @@
 A code indicating the TPEP provider that provided the record
 
 - TPEP = Technology Passenger Enhancements Project, it can be found defined at the bottom of the first page [TPEP](Documents/tpep_security_standards_promulgated.pdf)
+- TLC = Taxi and Limousine Commission, it can found defined at the top of the first page [TLC](Documents/tpep_security_standards_promulgated.pdf)
 
 ### Examples
 - 1 = Creative Mobile Technologies,LLC
@@ -24,9 +25,18 @@ A code indicating the TPEP provider that provided the record
 
 ## store_and_fwd_flag
 
-## PULocationID
+## Location ID
+Here is a full map of the different zones in New York *Ai Generated*
 
-## DOLocationID
+
+- Zone 264 is the "Unknown"
+- Zone 265 is the "Outside of NYC"
+
+### PULocationID
+TLC Taxi Zone in which the taximeter was engaged
+
+### DOLocationID
+TLC Taxi Zone in which the taximeter was disengaged
 
 ## payment_type
 
