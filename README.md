@@ -24,6 +24,29 @@ Our main problem is that we don't have any latitudes or longitudes for drop off 
 - Use money as a predictor for time? Make sure money is not a direct calculator for time as that would be data leakage
 - Figure out a nice number for batching the data
 
+
+### Cleaned Data
+
+**Columns loaded:** `tpep_pickup_datetime`, `tpep_dropoff_datetime`, `trip_distance`, `PULocationID`, `DOLocationID`
+
+**Derived columns** *(new)*, all calculated from the pickup/dropoff timestamps:
+
+| Column | Description | Range |
+|---|---|---|
+| `duration_min` | Trip duration in minutes (dropoff − pickup) | — |
+| `pickup_hour` | Hour of pickup | 0–23 |
+| `pickup_dow` | Day of week of pickup | 0–6 (0 = Monday, 6 = Sunday) |
+
+**Filters** (applied in order, % of the original dataset dropped):
+
+| # | Rule | Reason | Dropped |
+|---|---|---|---|
+| 1 | Drop `duration_min` ≤ 0 or ≥ 120 | A duration of 0 adds nothing to training; trips over 120 min are highly fluctuating outliers | ~1.33% |
+| 2 | Drop `trip_distance` ≤ 0 or > `DISTANCE_THRESHOLD` (currently 40) | 0-distance trips are removed as they may not fully include genuine trips and could be gps issue or incomplete trips | ~3.37% |
+| 3 | Drop zone IDs 264 & 265 | Unknown zones give inconsistent data, e.g. zone 1 → 265 can show 0.3 miles on one trip and 68 miles on another | ~0.6% |
+
+**Overall:** ~5.3% of the data dropped, 94.7% remaining.
+
 ---
 
 ## 2. Comparison of sequential and parallel execution
