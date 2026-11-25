@@ -17,7 +17,7 @@ The main problem we are trying to solve is a regression model for figuring out t
 - Include a tag on anything that is data parallelism, as these cannot be used in the sequential algorithm
 - Data cleaning:  
   - Decisions made:
-  - Any trips above 120 minutes and below 0 minutes have been removed as most of these were outliers which shouldn't be included
+  - Any trips above 90 minutes and at or below 0 minutes have been removed as most of these were outliers which shouldn't be included
   - Any trips over 40 miles have been excluded as they are again outliers which shouldn't be included
   - Finally, we have dropped the zones of 264 and 265 as they are unknow and New York county while we want to just capture
     Taxi data for inside of New York
@@ -34,25 +34,48 @@ The main problem we are trying to solve is a regression model for figuring out t
 
 ### Cleaned Data
 
-**Columns loaded:** `tpep_pickup_datetime`, `tpep_dropoff_datetime`, `trip_distance`, `PULocationID`, `DOLocationID`
+The cleaning is in section 1 of [Trip_Duration.ipynb](Trip_Duration.ipynb). Evidence for the duration and distance cut-offs is in
+[Evidence/Distance&Duration.ipynb](Evidence/Distance&Duration.ipynb).
 
-**Derived columns** *(new)*, all calculated from the pickup/dropoff timestamps:
+**Columns loaded:** `tpep_pickup_datetime`, `tpep_dropoff_datetime`, `trip_distance`, `PULocationID`, `DOLocationID`, `VendorID`, `RatecodeID`, `payment_type`, `fare_amount`.
+The other 11 columns are never read.
 
-| Column | Description | Range |
-|---|---|---|
-| `duration_min` | Trip duration in minutes (dropoff − pickup) | — |
-| `pickup_hour` | Hour of pickup | 0–23 |
-| `pickup_dow` | Day of week of pickup | 0–6 (0 = Monday, 6 = Sunday) |
-
-**Filters** (applied in order, % of the original dataset dropped):
+**Filters** (applied in order; numbers are for all four months, 14,908,446 raw rows):
 
 | # | Rule | Reason | Dropped |
 |---|---|---|---|
-| 1 | Drop `duration_min` ≤ 0 or ≥ 120 | A duration of 0 adds nothing to training; trips over 120 min are highly fluctuating outliers | ~1.33% |
-| 2 | Drop `trip_distance` ≤ 0 or > `DISTANCE_THRESHOLD` (currently 40) | 0-distance trips are removed as they may not fully include genuine trips and could be gps issue or incomplete trips | ~3.37% |
-| 3 | Drop zone IDs 264 & 265 | Unknown zones give inconsistent data, e.g. zone 1 → 265 can show 0.3 miles on one trip and 68 miles on another | ~0.6% |
+| 0 | Pickup outside the file's month | Spill-over records (some even from 2001 and 2008). Removed while reading the file | 54 |
+| 1 | Drop `duration_min` ≤ 0 or > 90 | 0 or negative is impossible; over 90 min is mostly meters left running (99% of trips are under 72 min) | 249,410 (1.67%) |
+| 2 | Drop `trip_distance` ≤ 0 or > 40 | 0-distance trips are not genuine journeys (GPS issue or incomplete trip); over 40 removes meter errors like 269,097 miles | 462,584 (3.10%) |
+| 3 | Drop zone IDs 264 & 265 | Unknown zones give inconsistent data, e.g. zone 1 → 265 can show 0.3 miles on one trip and 68 miles on another | 82,876 (0.56%) |
+| 4 | Average speed < 1 or > 65 mph | Meter errors that pass rules 1 and 2 on their own, e.g. 30 miles in 2 minutes. 65 mph is the top NY speed limit | 91,897 (0.62%) |
+| 5 | `fare_amount` ≤ 0 | Refunds, disputes and voided trips. Most negative fares reverse another record of the same trip | 98,000 (0.66%) |
+| 6 | Duplicate trip (same vendor, times, zones, distance) | Same trip recorded twice. Removes 0 because rule 5 already removes the reversal copies | 0 |
 
-**Overall:** ~5.3% of the data dropped, 94.7% remaining.
+**Overall:** 984,821 rows dropped (6.61%), 13,923,625 remaining (93.39%). Full per-month table: `CleanedData/cleaning_report.csv`.
+
+**Flex Fare nulls** (`payment_type` = 0, about a quarter of trips): these rows have empty `passenger_count`, `RatecodeID`, `store_and_fwd_flag`,
+`congestion_surcharge` and `Airport_fee`. The notebook checks the null counts match the Flex Fare count exactly. We keep the rows,
+set `RatecodeID` nulls to 99 ("unknown") and add an `is_flex_fare` column. The other null columns are never loaded.
+
+**Columns saved** to `CleanedData/yellow_tripdata_2026-<Mon>_Cleaned.parquet`, one file per month:
+
+| Column | Description |
+|---|---|
+| `tpep_pickup_datetime` | Pickup time |
+| `pickup_hour` | Hour of pickup, 0–23 |
+| `pickup_dow` | Day of week of pickup, 0 = Monday, 6 = Sunday |
+| `PULocationID`, `DOLocationID` | Pickup / drop-off zone, stored as a category (1–263) |
+| `trip_distance` | Miles |
+| `RatecodeID` | Rate code, stored as a category; nulls set to 99 |
+| `is_flex_fare` | True for Flex Fare trips |
+| `duration_min` | **Target:** drop-off minus pickup, in minutes |
+
+Read them with `read_clean()` or `load_split()` from the notebook so the categories are restored.
+
+**Leakage:** the drop-off time, fare and payment type are used for cleaning only and are not saved. Money is not used as a predictor.
+
+**Split by time, not at random:** train = January + February, validation = March, test = April.
 
 ---
 

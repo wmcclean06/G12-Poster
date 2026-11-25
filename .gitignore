@@ -77,3 +77,5 @@ fabric.properties
 # Android studio 3.1+ serialized cache file
 .idea/caches/build_file_checksums.ser
 
+# Cleaned monthly files made by section 1 of Trip_Duration.ipynb (about 15 s to rebuild)
+CleanedData/*_Cleaned.parquet
