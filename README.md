@@ -12,10 +12,17 @@
 
 ## 1. Data cleaning and preprocessing|Data Parallelism
 Our main problem is that we don't have any latitudes or longitudes for drop off or pickup
+The main problem we are trying to solve is a regression model for figuring out the trip duration
 
 - Include a tag on anything that is data parallelism, as these cannot be used in the sequential algorithm
-- Data cleaning: removing 0, anything over 100 miles, 
-  - look at anything at or above 80
+- Data cleaning:  
+  - Decisions made:
+  - Any trips above 120 minutes and below 0 minutes have been removed as most of these were outliers which shouldn't be included
+  - Any trips over 40 miles have been excluded as they are again outliers which shouldn't be included
+  - Finally, we have dropped the zones of 264 and 265 as they are unknow and New York county while we want to just capture
+    Taxi data for inside of New York
+  - What is left to do:
+  - Give evidence for the minutes and distance so make a Python script showing why it's ok to remove them
   - make a map of all the different boroughs/zones
 - We need to figure out the average time between different boroughs
 - Split/shard the dataset based on hourly time
@@ -50,7 +57,7 @@ Our main problem is that we don't have any latitudes or longitudes for drop off 
 ---
 
 ## 2. Comparison of sequential and parallel execution
-- Make the sequential algorithm
+- Make the sequential algorithm: This is done we need to move onto V0,
   - V0: Check that it actually runs on William's machine using the full dataset, if not we will shrink the dataset in half
     - This will be informing the data parallelisation as well
   - V1: Just use the different boroughs for the average
@@ -71,12 +78,3 @@ Our main problem is that we don't have any latitudes or longitudes for drop off 
 - Talk about sequential vs parallel
   - Task parallelism
 - Speak on the 2 examples of non-determinism
-
----
-
-## Questions for lab
-
-- Does Manhattan to Queens average time count as a feature for feature extraction?
-- 
-
-
