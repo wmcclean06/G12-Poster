@@ -96,6 +96,14 @@ Read them with `read_clean()` or `load_split()` from the notebook so the categor
   (8 fixed, equal blocks of training rows) and the sums are added in shard order, so every worker count gives bit-for-bit the same weights.
 - Speed-up and efficiency chart: `Figures/speedup_gradient_descent.png`. Amdahl's-law estimate and measured overheads are in section 3.4.
 
+**Task parallelism (section 4 of [Trip_Duration.ipynb](Trip_Duration.ipynb))**
+
+- Feature extraction: the three average-time tables run as three tasks at once, read back in submission order and checked against the sequential tables.
+  Builds on the group's earlier column-by-column feature extraction script.
+- Hyperparameter search: 12 random learning-rate and L2 settings, one full training run per task, seeded with `SEED + trial number`,
+  with early stopping. Best chosen on March; the chosen model is then scored once on April.
+- Uneven trial times (load imbalance) are shown in `Figures/task_parallel_search.png`.
+
 - Make the sequential algorithm: This is done we need to move onto V0,
   - V0: Check that it actually runs on William's machine using the full dataset, if not we will shrink the dataset in half
     - This will be informing the data parallelisation as well

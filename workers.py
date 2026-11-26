@@ -5,6 +5,7 @@ Python process, and a fresh process can only find functions it can import from a
 The sequential code in the notebook calls these same functions, so both versions do identical work.
 """
 import os
+import time
 
 # One maths thread per process, so worker processes don't compete for the same cores
 for var in ["OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"]:
@@ -64,6 +65,16 @@ def pace_table(paths, lookup_path):
                  count=("duration_min", "size")).sort_index())
 
 
+FEATURE_FUNCS = {"borough_hour": borough_hour_table, "zone_pair": zone_pair_table, "pace": pace_table}
+
+
+def feature_task(name, paths, lookup_path):
+    """One feature-extraction task: build one table, and report how long it took and which process ran it."""
+    start = time.perf_counter()
+    table = FEATURE_FUNCS[name](paths, lookup_path)
+    return table, time.perf_counter() - start, os.getpid()
+
+
 # ---- Gradient computation: the same function runs on every shard ----
 
 def partial_gradient(x_path, y_path, start, stop, w, b):
@@ -85,3 +96,62 @@ def ping(i):
 def blas_threads(i=None):
     """How many threads NumPy's maths library uses in this process (the argument lets pool.map call it)."""
     return max((info["num_threads"] for info in threadpool_info()), default=1)
+
+
+# ---- Training: shared by the sequential baseline, data parallelism and the search ----
+
+def train_gd(shards, eta, steps, lam=0.0, map_fn=map, tol=None):
+    """Batch gradient descent for linear regression. Returns weights, bias and training RMSE after each step.
+
+    map_fn runs partial_gradient on every shard: Python's map for one process, a pool's map for several.
+    With tol set, training stops early once the error improves by less than that fraction, or starts to grow.
+    """
+    n_features = np.load(shards[0][0], mmap_mode="r").shape[1]
+    w, b = np.zeros(n_features), 0.0
+    history = []
+    for _ in range(steps):
+        n_shards = len(shards)
+        parts = list(map_fn(partial_gradient, *zip(*shards), [w] * n_shards, [b] * n_shards))
+        # Add the shard sums in shard order, so the result never depends on which shard finished first
+        grad_w = sum(p[0] for p in parts)
+        grad_b = sum(p[1] for p in parts)
+        sq_err = sum(p[2] for p in parts)
+        n = sum(p[3] for p in parts)
+        w = w - eta * (grad_w / n + lam * w)
+        b = b - eta * grad_b / n
+        history.append(np.sqrt(sq_err / n))
+        if tol is not None and len(history) > 1:
+            if not np.isfinite(history[-1]) or history[-1] > history[0]:
+                break  # diverging: the learning rate is too high
+            if history[-2] - history[-1] < tol * history[-1]:
+                break  # converged
+    return w, b, history
+
+
+def run_trial(trial_id, shards, val_paths, steps, tol, seed):
+    """One hyperparameter trial: draw a learning rate and L2 strength, train, and score on the validation month.
+
+    The settings come from a generator seeded with seed + trial_id, so a trial draws the same settings whichever
+    worker runs it. seed=None draws different settings every run (used in section 5 to show the problem).
+    """
+    start = time.perf_counter()
+    rng = np.random.default_rng(None if seed is None else seed + trial_id)
+    eta = float(10 ** rng.uniform(np.log10(0.02), np.log10(0.6)))
+    lam = float(10 ** rng.uniform(-5, -1))
+    with np.errstate(over="ignore", invalid="ignore"):
+        w, b, history = train_gd(shards, eta, steps, lam=lam, tol=tol)
+        trained = time.perf_counter()
+        X = np.load(val_paths[0], mmap_mode="r")
+        y = np.load(val_paths[1], mmap_mode="r")
+        rmse = float(np.sqrt(np.mean((X @ w + b - y) ** 2)))
+    end = time.perf_counter()
+    if not np.isfinite(history[-1]) or history[-1] > history[0]:
+        stopped = "diverged"
+    elif len(history) < steps:
+        stopped = "converged"
+    else:
+        stopped = "step limit"
+    return {"trial": trial_id, "eta": eta, "lam": lam, "steps": len(history), "stopped": stopped,
+            "val_rmse": rmse if np.isfinite(rmse) else float("inf"),
+            "seconds": end - start, "train_seconds": trained - start, "score_seconds": end - trained,
+            "pid": os.getpid(), "w": w, "b": b}
