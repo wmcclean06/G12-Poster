@@ -104,7 +104,8 @@ def train_gd(shards, eta, steps, lam=0.0, map_fn=map, tol=None):
     """Batch gradient descent for linear regression. Returns weights, bias and training RMSE after each step.
 
     map_fn runs partial_gradient on every shard: Python's map for one process, a pool's map for several.
-    With tol set, training stops early once the error improves by less than that fraction, or starts to grow.
+    With tol set, training stops early once the error improves by less than that fraction, or as soon as it goes up
+    (with a safe learning rate, gradient descent on this problem never makes the error go up, so a rise means it is diverging).
     """
     n_features = np.load(shards[0][0], mmap_mode="r").shape[1]
     w, b = np.zeros(n_features), 0.0
@@ -121,7 +122,7 @@ def train_gd(shards, eta, steps, lam=0.0, map_fn=map, tol=None):
         b = b - eta * grad_b / n
         history.append(np.sqrt(sq_err / n))
         if tol is not None and len(history) > 1:
-            if not np.isfinite(history[-1]) or history[-1] > history[0]:
+            if not np.isfinite(history[-1]) or history[-1] > history[-2]:
                 break  # diverging: the learning rate is too high
             if history[-2] - history[-1] < tol * history[-1]:
                 break  # converged
@@ -145,7 +146,7 @@ def run_trial(trial_id, shards, val_paths, steps, tol, seed):
         y = np.load(val_paths[1], mmap_mode="r")
         rmse = float(np.sqrt(np.mean((X @ w + b - y) ** 2)))
     end = time.perf_counter()
-    if not np.isfinite(history[-1]) or history[-1] > history[0]:
+    if not np.isfinite(history[-1]) or (len(history) > 1 and history[-1] > history[-2]):
         stopped = "diverged"
     elif len(history) < steps:
         stopped = "converged"

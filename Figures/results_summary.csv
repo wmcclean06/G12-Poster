@@ -1,0 +1,16 @@
+Part,Measure,Result
+Cleaning,Rows kept after cleaning,"13,923,625 of 14,908,446 (93.4%)"
+Model,"Validation RMSE, March (our model / one-hot / mean)",6.07 / 6.94 / 13.04 min
+Model,"Test RMSE, April (section 2 model)",6.38 min
+Data parallel,"Gradient descent, sequential (median of runs)",93.5 s (300 steps)
+Data parallel,1 worker,"94.2 s, 0.99x speed-up, 99% efficiency, identical weights: True"
+Data parallel,2 workers,"52.5 s, 1.78x speed-up, 89% efficiency, identical weights: True"
+Data parallel,4 workers,"32.9 s, 2.84x speed-up, 71% efficiency, identical weights: True"
+Data parallel,8 workers,"23.5 s, 3.99x speed-up, 50% efficiency, identical weights: True"
+Data parallel,Amdahl's law,"p ≈ 0.87, speed-up capped near 7.4x"
+Task parallel,Feature extraction (3 tasks),"1.85 s → 0.93 s, 1.98x (at most 2.15x)"
+Task parallel,"Hyperparameter search (12 trials, 12 workers)","79.8 s vs about 431 s one after another, 5.40x"
+Task parallel,Best trial on March,"trial 5: learning rate 0.135, L2 5.9e-04, RMSE 6.069 min"
+Non-determinism,Thread count (before → after),identical = False → True
+Non-determinism,Unseeded search (before → after),same settings = False → True
+Run,Hardware and total run time,"14 cores, Windows-11-10.0.26200-SP0, 22.4 min"

@@ -104,6 +104,17 @@ Read them with `read_clean()` or `load_split()` from the notebook so the categor
   with early stopping. Best chosen on March; the chosen model is then scored once on April.
 - Uneven trial times (load imbalance) are shown in `Figures/task_parallel_search.png`.
 
+**Non-determinism (section 5 of [Trip_Duration.ipynb](Trip_Duration.ipynb))**
+
+Two sources, each shown with a "before" run (results differ), the fix, and an "after" run (identical results):
+
+| Source | Fix |
+|---|---|
+| NumPy's maths library using a different number of threads in the notebook and the workers (found when our first section 3 run failed: `Evidence/Failed_run_thread_mismatch.ipynb`) | `threadpool_limits(1)` in the notebook and in `workers.py`, checked for every pool |
+| Unseeded random choices in the hyperparameter search (and the group's earlier random 80/20 split) | A seed per trial: `SEED + trial number` |
+
+**Results summary (section 6):** one table with every number used on the poster, also saved to `Figures/results_summary.csv`.
+
 - Make the sequential algorithm: This is done we need to move onto V0,
   - V0: Check that it actually runs on William's machine using the full dataset, if not we will shrink the dataset in half
     - This will be informing the data parallelisation as well
