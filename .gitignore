@@ -79,3 +79,5 @@ fabric.properties
 
 # Cleaned monthly files made by section 1 of Trip_Duration.ipynb (about 15 s to rebuild)
 CleanedData/*_Cleaned.parquet
+# Model-ready NumPy arrays made by section 2 of Trip_Duration.ipynb (about 1 GB, rebuilt on every run)
+CleanedData/features/

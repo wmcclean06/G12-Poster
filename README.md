@@ -80,6 +80,16 @@ Read them with `read_clean()` or `load_split()` from the notebook so the categor
 ---
 
 ## 2. Comparison of sequential and parallel execution
+
+**Sequential baseline (section 2 of [Trip_Duration.ipynb](Trip_Duration.ipynb))**
+
+- Model: linear regression trained with batch gradient descent in NumPy, so the gradient can later be split across workers.
+- Features: distance, hour of day, weekend, Flex Fare, plus three average-time tables built from the training months only
+  (borough pair by hour and day of week, zone pair, and minutes per mile by borough, hour and day of week).
+- Validation (March): RMSE 6.07 min, MAE 3.95 min, R² 0.78. The group's one-hot scikit-learn model gets RMSE 6.94 on the same split.
+- Worker functions are in [workers.py](workers.py). The notebook calls the same functions sequentially, so both versions do identical work.
+- Install the packages with `pip install -r requirements.txt`.
+
 - Make the sequential algorithm: This is done we need to move onto V0,
   - V0: Check that it actually runs on William's machine using the full dataset, if not we will shrink the dataset in half
     - This will be informing the data parallelisation as well

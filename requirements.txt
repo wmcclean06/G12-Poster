@@ -1,0 +1,7 @@
+# Tested on Python 3.13/3.14 with pandas 3.0 and pyarrow 26; the cleaning also runs on pandas 2.2 with pyarrow 18
+numpy>=1.26
+pandas>=2.2
+pyarrow>=17
+scikit-learn>=1.4
+matplotlib>=3.8
+jupyter
