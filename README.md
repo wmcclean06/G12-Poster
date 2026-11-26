@@ -90,6 +90,12 @@ Read them with `read_clean()` or `load_split()` from the notebook so the categor
 - Worker functions are in [workers.py](workers.py). The notebook calls the same functions sequentially, so both versions do identical work.
 - Install the packages with `pip install -r requirements.txt`.
 
+**Data parallelism (section 3 of [Trip_Duration.ipynb](Trip_Duration.ipynb))**
+
+- The same gradient descent runs on a process pool with 1, 2, 4 and 8 workers. Each worker sums the gradient for its shards
+  (8 fixed, equal blocks of training rows) and the sums are added in shard order, so every worker count gives bit-for-bit the same weights.
+- Speed-up and efficiency chart: `Figures/speedup_gradient_descent.png`. Amdahl's-law estimate and measured overheads are in section 3.4.
+
 - Make the sequential algorithm: This is done we need to move onto V0,
   - V0: Check that it actually runs on William's machine using the full dataset, if not we will shrink the dataset in half
     - This will be informing the data parallelisation as well

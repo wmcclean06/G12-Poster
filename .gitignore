@@ -81,3 +81,5 @@ fabric.properties
 CleanedData/*_Cleaned.parquet
 # Model-ready NumPy arrays made by section 2 of Trip_Duration.ipynb (about 1 GB, rebuilt on every run)
 CleanedData/features/
+# Python bytecode cache made when workers.py is imported
+__pycache__/

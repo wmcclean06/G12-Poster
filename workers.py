@@ -12,6 +12,9 @@ for var in ["OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS"]:
 
 import numpy as np
 import pandas as pd
+from threadpoolctl import threadpool_info, threadpool_limits
+
+threadpool_limits(limits=1)  # in case the maths library was loaded before the lines above
 
 BOROUGH_HOUR_KEYS = ["PU_borough", "DO_borough", "pickup_hour", "pickup_dow"]
 ZONE_PAIR_KEYS = ["PULocationID", "DOLocationID"]
@@ -72,3 +75,13 @@ def partial_gradient(x_path, y_path, start, stop, w, b):
     y = np.load(y_path, mmap_mode="r")[start:stop]
     err = X @ w + b - y
     return X.T @ err, err.sum(), err @ err, len(err)
+
+
+def ping(i):
+    """Does nothing. Used to start a pool's processes and to time the cost of sending a task."""
+    return i
+
+
+def blas_threads(i=None):
+    """How many threads NumPy's maths library uses in this process (the argument lets pool.map call it)."""
+    return max((info["num_threads"] for info in threadpool_info()), default=1)
